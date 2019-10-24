@@ -38,6 +38,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -57,6 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Timestamp ts;
     String tsString;
     String city = "Some City (fix later)";
+    LatLng currlocation;
 
     private LocationManager locationManager;
 
@@ -104,6 +106,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+
+        //repopulate markers
+
 
 
     }
@@ -163,8 +168,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
         getLatLongTime();
         // Add a marker in Sydney and move the camera
-        LatLng currlocation = new LatLng(lat, lng);
-        mMap.addMarker(new MarkerOptions().position(currlocation).title("Marker Here!"));
+        currlocation = new LatLng(lat, lng);
+
+        //geocode the city
+        List<Address> addresses = null;
+        try {
+            addresses = geocoder.getFromLocation(lat, lng, 1);
+            city = addresses.get(0).getLocality();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mMap.addMarker(new MarkerOptions().position(currlocation).title(city));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(currlocation));
 
     }
@@ -189,6 +204,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 this.getLatLongTime();
                 this.saveToDataBase();
 
+                //add a marker to the new created map, if its in a different spot
+                LatLng tempLoc = new LatLng(lat, lng);
+                if(tempLoc != currlocation){
+                    currlocation = tempLoc;
+                    mMap.addMarker(new MarkerOptions().position(currlocation).title( city));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(currlocation));
+                }
+
+
 
             }else   if (requestCode == 2) {
                   //retrieve the latitude, longitude, and picture URL
@@ -212,8 +236,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         Location location = locationManager.getLastKnownLocation(Objects.requireNonNull(locationManager.getBestProvider(criteria, false)));
         lat = location.getLatitude();
-        latitude = Double.toString(lat);
         lng = location.getLongitude();
+
+        //round values
+        DecimalFormat df = new DecimalFormat("###.###");
+        lat = Double.valueOf(df.format(lat));
+        lng = Double.valueOf(df.format(lng));
+
+        //convert them strings
+        latitude = Double.toString(lat);
         longitude = Double.toString(lng);
 
         Log.i("Location", "Debug Lat: " + latitude + " Lng:  " + longitude);
@@ -238,9 +269,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
     }
 
     public void saveToDataBase(){
