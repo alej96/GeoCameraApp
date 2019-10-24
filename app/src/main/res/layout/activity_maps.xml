@@ -18,39 +18,36 @@
         android:id = "@+id/image"/>
 
     <Button
-        android:id="@+id/takePicture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="onTakePicture"
-        android:text="Take Picture" />
-
-    <Button
         android:id="@+id/btnTakePic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:onClick="onTakePicture"
-        android:text="Take Picture from Camera" />
+        android:text="Open Camera" />
 
-
-
-
-
-<!--
     <Button
-        android:id="@+id/search"
+        android:id="@+id/takePicture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Search" />
+        android:layout_gravity="center"
+        android:onClick="onTakePicture"
+        android:text="View List" />
 
-    <EditText
-        android:id="@+id/textSearch"
-        android:onClick= "onSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
--->
+
+    <!--
+        <Button
+            android:id="@+id/search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Search" />
+
+        <EditText
+            android:id="@+id/textSearch"
+            android:onClick= "onSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView" />
+    -->
 
 
 </LinearLayout>

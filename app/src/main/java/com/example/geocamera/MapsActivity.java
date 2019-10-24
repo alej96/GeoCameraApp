@@ -41,6 +41,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import static android.os.Environment.getExternalStoragePublicDirectory;
@@ -48,12 +49,14 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    Geocoder geocoder;
     String latitude, longitude;
     double lat, lng;
     long time;
     Date date;
     Timestamp ts;
     String tsString;
+    String city = "Some City (fix later)";
 
     private LocationManager locationManager;
 
@@ -78,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         date = new Date();
         mDatabaseHelper = new DatabaseHelper(this);
+        geocoder = new Geocoder(this, Locale.getDefault());
 
         imageView = findViewById(R.id.image);
         btnTakePic = findViewById(R.id.btnTakePic);
@@ -167,7 +171,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onTakePicture(View view) {
 
-        Intent cameraIntent = new Intent(this, CameraActivity.class);
+        Intent cameraIntent = new Intent(this, ImageList.class);
         startActivityForResult(cameraIntent, 2);
 
 
@@ -221,12 +225,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.i("Time", "Debug Time in Milliseconds: " + time + "  Current Time Stamp:  " + ts +
                 "  TS String: "+ tsString);
 
+        List<Address> addresses = null;
+        try {
+            addresses = geocoder.getFromLocation(lat, lng, 1);
+            city = addresses.get(0).getLocality();
+            String cityName = addresses.get(0).getAddressLine(0);
+            String stateName = addresses.get(0).getAddressLine(1);
+            String countryName = addresses.get(0).getAddressLine(2);
+
+            Log.i("Maps Debug", "city:  " + city + cityName + "   " + stateName + "  " + countryName);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
 
     }
 
     public void saveToDataBase(){
 
-        mDatabaseHelper.insertData(pathToFile, latitude,longitude,tsString);
+        mDatabaseHelper.insertData(pathToFile, city, latitude,longitude,tsString);
         this.toastMessage("Picture Saved!");
     }
     private void toastMessage(String msg){

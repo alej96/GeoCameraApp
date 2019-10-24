@@ -1,6 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <activity android:name="com.example.geocamera.CameraActivity"></activity>
+        <activity android:name="com.example.geocamera.singleGridImage"></activity>
+        <activity android:name="com.example.geocamera.ImageGallery" />
+        <activity android:name="com.example.geocamera.CameraActivity" />
     </application>
+
 </manifest>

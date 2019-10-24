@@ -19,7 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Authority is the package name
     private static final String AUTHORITY = "com.example.geocamera";
     //TABLE_NAME is defined as ToDoList
-    private static final String TABLE_NAME = "GeoCameraDataBase";
+    private static final String TABLE_NAME = "GeoCameraDataBase1";
     //Create a CONTENT_URI for use by other classes
     public static final Uri CONTENT_URI =
             Uri.parse("content://" + AUTHORITY + "/"+TABLE_NAME);
@@ -30,6 +30,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_COL_LATITUDE= "LATITUDE";
     public static final String TABLE_COL_LONGITUDE = "LONGITUDE";
     public static final String TABLE_COL_TIMETAMP = "TIMETAMP";
+    public static final String TABLE_COL_CITY = "CITY";
 
     public DatabaseHelper( Context context) {
 
@@ -47,6 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 TABLE_COL_FILEPATH + " TEXT NOT NULL, " +
+                TABLE_COL_CITY + " TEXT NOT NULL, " +
                 TABLE_COL_LATITUDE + " TEXT NOT NULL, " +
                 TABLE_COL_LONGITUDE +  " TEXT NOT NULL, " +
                 TABLE_COL_TIMETAMP + " TEXT NOT NULL);" ;
@@ -95,14 +97,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(query);
     }*/
 
-    public void insertData(String filePath , String latitude, String longitude, String timeAmp){
+    public void insertData(String filePath , String city, String latitude, String longitude, String timeAmp){
 
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "INSERT INTO " + TABLE_NAME + " ( " +
-                TABLE_COL_FILEPATH + " , " + TABLE_COL_LATITUDE + " , " +
+                TABLE_COL_FILEPATH + " , " + TABLE_COL_CITY + " , " +
+                TABLE_COL_LATITUDE + " , " +
                 TABLE_COL_LONGITUDE  + " , " + TABLE_COL_TIMETAMP +" ) " +
 
-                "VALUES ( '" + filePath + "' , '" + latitude +  "' , '" +
+                "VALUES ( '" + filePath + "' , '" + city + "' , '" + latitude +  "' , '" +
                 longitude +  "' , '" + timeAmp + "' );";
         Log.d(TAG, "updateName: query: " + query);
         db.execSQL(query);
