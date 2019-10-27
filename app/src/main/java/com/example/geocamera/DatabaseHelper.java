@@ -19,7 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Authority is the package name
     private static final String AUTHORITY = "com.example.geocamera";
     //TABLE_NAME is defined as ToDoList
-    private static final String TABLE_NAME = "GeoCameraDataBase1";
+    private static final String TABLE_NAME = "GeoCameraDataBase2";
     //Create a CONTENT_URI for use by other classes
     public static final Uri CONTENT_URI =
             Uri.parse("content://" + AUTHORITY + "/"+TABLE_NAME);
@@ -40,11 +40,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //Table create string based on column names
     @Override
     public void onCreate(SQLiteDatabase db) {
-
-/*        String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                TABLE_COL_TITLE + " TEXT NOT NULL, " +
-                TABLE_COL_CONTENT + " TEXT NOT NULL);" ;*/
-
 
         String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 TABLE_COL_FILEPATH + " TEXT NOT NULL, " +
@@ -86,16 +81,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return true;
         }
     }
-
- /*   public void insertData(String title, String content){
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        String query = "INSERT INTO " + TABLE_NAME + " ( " +
-               TABLE_COL_TITLE + " , " + TABLE_COL_CONTENT + " ) VALUES ( '" +
-               title + "' , '" + content +"' );";
-        Log.d(TAG, "updateName: query: " + query);
-        db.execSQL(query);
-    }*/
 
     public void insertData(String filePath , String city, String latitude, String longitude, String timeAmp){
 
@@ -181,15 +166,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor data = db.rawQuery(query, null);
         return data;
     }
-    /**
-     * Last Row from database
-     */
 
-//    public int lastRow( ){
-//
-//        SQLiteDatabase db = this.getWritableDatabase();
-//        String query = "SELECT COUNT(*) FROM "+ TABLE_NAME + ";";
-//
-//
-//    }
+    public Cursor getCityData(String clickedCity) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_NAME +
+                " WHERE " + TABLE_COL_CITY + " = '" + clickedCity + "'";
+        Cursor data = db.rawQuery(query, null);
+        return data;
+    }
 }

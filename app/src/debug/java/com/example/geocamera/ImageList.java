@@ -1,9 +1,11 @@
 package com.example.geocamera;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.GridView;
 
 import androidx.annotation.Nullable;
@@ -22,6 +24,8 @@ public class ImageList extends AppCompatActivity {
     ImageListAdapter adapter = null;
     Cursor cursor;
     DatabaseHelper databaseHelper;
+    String clickedCity;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +37,9 @@ public class ImageList extends AppCompatActivity {
         adapter = new ImageListAdapter(this, R.layout.activity_single_grid_image, list);
         gridView.setAdapter(adapter);
 
+        Intent intent = getIntent();
+        clickedCity = intent.getStringExtra("clickedCity");
+
         //get all data from SQLite
         databaseHelper = new DatabaseHelper(this);
 
@@ -43,31 +50,44 @@ public class ImageList extends AppCompatActivity {
         super.onResume();
 
         //Populate data
-        cursor = databaseHelper.getData();
+        cursor = databaseHelper.getCityData(clickedCity);
         list.clear();
         cursor.moveToFirst();
-        while (cursor.moveToNext()){
-            int id = cursor.getInt(0);
 
-            //get image from file path and convert it to array byte
-            String imagePath = cursor.getString(1);
-            File fi = new File(imagePath);
+        if (cursor != null && cursor.moveToFirst()){
 
-            byte[] image = new byte[0];
-            try {
-                image = Files.readAllBytes(fi.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            do {
+                int id = cursor.getInt(0);
 
-            String city = cursor.getString(2);
-            String latitude = cursor.getString(3);
-            String longitude = cursor.getString(4);
-            String time = cursor.getString(5);
+                //get image from file path and convert it to array byte
+                String imagePath = cursor.getString(1);
+                File fi = new File(imagePath);
 
-            list.add(new ImageTaken(id, city, time , image, latitude, longitude));
+                byte[] image = new byte[0];
+                try {
+                    image = Files.readAllBytes(fi.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-        }
+                String city = cursor.getString(2);
+                String latitude = cursor.getString(3);
+                String longitude = cursor.getString(4);
+                String time = cursor.getString(5);
+
+
+                //debug
+                String dbColID = cursor.getColumnName(0);
+                String dbColCity = cursor.getColumnName(2);
+
+                Log.i("Maps Debug: Segmented DataBase", dbColID + " -> " + id);
+                Log.i("Maps Debug: Segmented DataBase", dbColCity + " -> " + city);
+
+
+                list.add(new ImageTaken(id, city, time, image, latitude, longitude));
+
+            }while (cursor.moveToNext());
+    }
 
         adapter.notifyDataSetChanged();
     }

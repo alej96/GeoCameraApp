@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -30,13 +31,17 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -47,9 +52,9 @@ import java.util.Objects;
 
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
-    private GoogleMap mMap;
+   private GoogleMap mMap;
     Geocoder geocoder;
     String latitude, longitude;
     double lat, lng;
@@ -59,6 +64,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String tsString;
     String city = "Some City (fix later)";
     LatLng currlocation;
+    String clickedCity;
+
+    private Marker clickedMarker;
 
     private LocationManager locationManager;
 
@@ -66,16 +74,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Button btnTakePic;
     String pathToFile;
     DatabaseHelper mDatabaseHelper;
+    Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
+        if(mMap == null) {
+            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+        }
         intializeComponents();
     }
 
@@ -99,17 +110,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 dispatchPictureTakerAction();
             }
         });
+    }
+    private void setUpMap()
+    {
 
+       // mMap.setOnMarkerClickListener(this);
+
+        clickedMarker = mMap.addMarker(new MarkerOptions()
+                .position(currlocation)
+                .title("My Spot")
+                .snippet("This is my spot!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
     }
+
+  /*  @Override
+    public boolean onMarkerClick(Marker marker) {
+        //code for startactivity
+
+        if (marker.equals(clickedMarker)) {
+            toastMessage("Marker cliked!!");
+            Intent cameraIntent = new Intent(this, ImageList.class);
+            startActivityForResult(cameraIntent, 2);
+        }
+
+        return true;
+    }*/
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        //repopulate markers
-
-
 
     }
 
@@ -164,7 +194,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+      //  mMap.setOnMarkerClickListener(this);
         mMap.setMyLocationEnabled(true);
         getLatLongTime();
         // Add a marker in Sydney and move the camera
@@ -179,8 +209,74 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
 
-        mMap.addMarker(new MarkerOptions().position(currlocation).title(city));
+      //  mMap.addMarker(new MarkerOptions().position(currlocation).title(city));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(currlocation));
+
+        this.initializeMap();
+
+        //react when marker is clicked!
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            public boolean onMarkerClick(Marker marker) {
+                double dlat =marker.getPosition().latitude;
+                double dlon =marker.getPosition().longitude;
+                List<Address> clickedAddress = null;
+
+                try {
+                    clickedAddress = geocoder.getFromLocation(dlat, dlon, 1);
+                    clickedCity = clickedAddress.get(0).getLocality();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Intent imageListIntent = new Intent(MapsActivity.this, ImageList.class);
+                imageListIntent.putExtra("clickedCity", clickedCity);
+                startActivity(imageListIntent);
+
+                return true;
+            }
+        });
+
+    }
+
+    private void initializeMap() {
+
+        //repopulate markers
+        cursor = mDatabaseHelper.getData();
+        cursor.moveToFirst();
+
+        if (cursor != null && cursor.moveToFirst()){
+            do {
+
+                String tempLat = cursor.getString(3);
+                String tempLng = cursor.getString(4);
+                Double tempLatDouble = Double.parseDouble(tempLat);
+                Double tempLngDouble = Double.parseDouble(tempLng);
+
+                LatLng tempLoc = new LatLng(tempLatDouble, tempLngDouble);
+
+                //geocode the city
+                List<Address> tempAddresses = null;
+                String cityTemp = null;
+                try {
+                    tempAddresses = geocoder.getFromLocation(tempLatDouble, tempLngDouble, 1);
+                    cityTemp = tempAddresses.get(0).getLocality();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mMap.addMarker(new MarkerOptions().position(tempLoc).title(cityTemp));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(tempLoc));
+
+
+                String dbColID = cursor.getColumnName(0);
+                String dbID = cursor.getString(0);
+                String dbColCity = cursor.getColumnName(2);
+                String dbCity = cursor.getString(2);
+
+                Log.i("Maps Debug: DataBase", dbColCity + " -> " +  dbCity);
+                Log.i("Maps Debug: DataBase", dbColID + " -> " +  dbID);
+
+            }while (cursor.moveToNext());
+        }
 
     }
 
@@ -279,27 +375,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void toastMessage(String msg){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
-    /*public void onSearch(View view){
 
-        EditText location_tf = (EditText) findViewById(R.id.textSearch);
-        String location = location_tf.getText().toString();
+ /*   @Override
+    public void onMapClick(LatLng latLng) {
 
-        List<Address> addressList = null;
 
-        if(location != null || ! location.equals("'")){
-            Geocoder geocoder = new Geocoder(this);
-            try{
-                addressList = geocoder.getFromLocationName(location, 1);
+                double dlat = latLng.latitude;
+                double dlon = latLng.longitude;
+                List<Address> clickedAddress = null;
+                String clickedCity =null;
+                try {
+                    clickedAddress = geocoder.getFromLocation(dlat, dlon, 1);
+                    clickedCity = clickedAddress.get(0).getLocality();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            }catch (IOException e ){
-                e.printStackTrace();
-            }
+                Intent imageListIntent = new Intent(MapsActivity.this, ImageList.class);
+                imageListIntent.putExtra("clickedCity", clickedCity);
+                startActivity(imageListIntent);
 
-            Address address = addressList.get(0);
-            LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        }
+
 
     }*/
 }
