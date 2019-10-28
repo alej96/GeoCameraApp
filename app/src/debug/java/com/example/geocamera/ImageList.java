@@ -50,7 +50,10 @@ public class ImageList extends AppCompatActivity {
         super.onResume();
 
         //Populate data
-        cursor = databaseHelper.getCityData(clickedCity);
+        if(clickedCity.equals("pleaseDisplayAllData")) {
+            cursor = databaseHelper.getData(); //populate all data
+        }else cursor = databaseHelper.getCityData(clickedCity);
+
         list.clear();
         cursor.moveToFirst();
 
@@ -92,15 +95,4 @@ public class ImageList extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-/*    public byte[] extractBytes (String ImageName) throws IOException {
-        // open image
-        File imgPath = new File(ImageName);
-        BufferedImage bufferedImage = ImageIO.read(imgPath);
-
-        // get DataBufferBytes from Raster
-        WritableRaster raster = bufferedImage .getRaster();
-        DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
-
-        return ( data.getData() );
-    }*/
 }

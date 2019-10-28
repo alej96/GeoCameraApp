@@ -45,6 +45,7 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private LocationManager locationManager;
 
-    ImageView imageView;
+  //  ImageView imageView;
     Button btnTakePic;
     String pathToFile;
     DatabaseHelper mDatabaseHelper;
@@ -96,7 +97,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDatabaseHelper = new DatabaseHelper(this);
         geocoder = new Geocoder(this, Locale.getDefault());
 
-        imageView = findViewById(R.id.image);
+      //  imageView = findViewById(R.id.image);
         btnTakePic = findViewById(R.id.btnTakePic);
 
         if (Build.VERSION.SDK_INT >= 23) {
@@ -111,31 +112,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
-    private void setUpMap()
-    {
 
-       // mMap.setOnMarkerClickListener(this);
-
-        clickedMarker = mMap.addMarker(new MarkerOptions()
-                .position(currlocation)
-                .title("My Spot")
-                .snippet("This is my spot!")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
-    }
-
-  /*  @Override
-    public boolean onMarkerClick(Marker marker) {
-        //code for startactivity
-
-        if (marker.equals(clickedMarker)) {
-            toastMessage("Marker cliked!!");
-            Intent cameraIntent = new Intent(this, ImageList.class);
-            startActivityForResult(cameraIntent, 2);
-        }
-
-        return true;
-    }*/
 
     @Override
     protected void onResume() {
@@ -282,8 +259,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onTakePicture(View view) {
 
-        Intent cameraIntent = new Intent(this, ImageList.class);
-        startActivityForResult(cameraIntent, 2);
+        Intent viewListIntent = new Intent(this, ImageList.class);
+        viewListIntent.putExtra("clickedCity", "pleaseDisplayAllData");
+        startActivity(viewListIntent);
 
 
     }
@@ -295,7 +273,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (requestCode == 1) {
 
                 Bitmap bitmap = BitmapFactory.decodeFile(pathToFile);
-                imageView.setImageBitmap(bitmap);
+                //imageView.setImageBitmap(bitmap);
 
                 this.getLatLongTime();
                 this.saveToDataBase();
@@ -335,7 +313,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lng = location.getLongitude();
 
         //round values
-        DecimalFormat df = new DecimalFormat("###.###");
+        DecimalFormat df = new DecimalFormat("###.##");
         lat = Double.valueOf(df.format(lat));
         lng = Double.valueOf(df.format(lng));
 
@@ -345,10 +323,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Log.i("Location", "Debug Lat: " + latitude + " Lng:  " + longitude);
 
+       // date = Calendar.getInstance().getTime();
+        date = new Date();
         //get TimeStamp
         time = date.getTime();
         ts =  new Timestamp(time);
-        tsString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ").format(ts);
+        tsString = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss z").format(ts);
         Log.i("Time", "Debug Time in Milliseconds: " + time + "  Current Time Stamp:  " + ts +
                 "  TS String: "+ tsString);
 
